@@ -1,0 +1,149 @@
+{% extends 'Base/Home.html' %}
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">
+            <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} mr-2"></i>
+            {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Producto
+        </h1>
+        <a href="{% url 'listar_productos' %}" 
+           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all duration-200 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver
+        </a>
+    </div>
+
+    <!-- Form Section -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                {{ form.non_field_errors }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Form Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nombre -->
+            <div class="col-span-2">
+                <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-tag mr-2"></i>Nombre
+                </label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.nombre.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Descripción -->
+            <div class="col-span-2">
+                <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-align-left mr-2"></i>Descripción
+                </label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.descripcion.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Precio Compra -->
+            <div>
+                <label for="{{ form.precio_compra.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-shopping-cart mr-2"></i>Precio de Compra
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-gray-500">$</span>
+                    {{ form.precio_compra }}
+                </div>
+                {% if form.precio_compra.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.precio_compra.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Precio Venta -->
+            <div>
+                <label for="{{ form.precio_venta.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-tag mr-2"></i>Precio de Venta
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-gray-500">$</span>
+                    {{ form.precio_venta }}
+                </div>
+                {% if form.precio_venta.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.precio_venta.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Stock -->
+            <div>
+                <label for="{{ form.stock.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-warehouse mr-2"></i>Stock
+                </label>
+                {{ form.stock }}
+                {% if form.stock.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.stock.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Fecha Vencimiento -->
+            <div>
+                <label for="{{ form.fecha_vencimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt mr-2"></i>Fecha de Vencimiento
+                </label>
+                {{ form.fecha_vencimiento }}
+                {% if form.fecha_vencimiento.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.fecha_vencimiento.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Código de Barras -->
+            <div class="col-span-2">
+                <label for="{{ form.codigo_barra.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-barcode mr-2"></i>Código de Barras
+                </label>
+                {{ form.codigo_barra }}
+                {% if form.codigo_barra.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.codigo_barra.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Buttons Section -->
+        <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+            <button type="submit" 
+                    class="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 flex items-center">
+                <i class="fas fa-save mr-2"></i>
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript for form enhancements -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add $ symbol to price inputs
+    const priceInputs = document.querySelectorAll('input[type="number"]');
+    priceInputs.forEach(input => {
+        if (input.id.includes('precio')) {
+            input.style.paddingLeft = '1.5rem';
+        }
+    });
+
+    // Validate prices
+    const precioCompra = document.getElementById('{{ form.precio_compra.id_for_label }}');
+    const precioVenta = document.getElementById('{{ form.precio_venta.id_for_label }}');
+
+    precioVenta.addEventListener('change', function() {
+        if (parseFloat(precioVenta.value) <= parseFloat(precioCompra.value)) {
+            alert('El precio de venta debe ser mayor al precio de compra');
+        }
+    });
+});
+</script>
+{% endblock %}

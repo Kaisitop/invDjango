@@ -1,0 +1,277 @@
+{% extends 'Base/Home.html' %} {% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+  <!-- Header Section -->
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0"
+  >
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 flex items-center">
+        <i class="fas fa-receipt mr-2"></i>
+        Lista de Ventas
+      </h1>
+      <p class="text-gray-600 mt-1">Gestión de ventas y transacciones</p>
+    </div>
+
+    <div class="flex space-x-4">
+      <a
+        href="{% url 'crear_venta' %}"
+        class="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-4 py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 flex items-center"
+      >
+        <i class="fas fa-plus mr-2"></i>
+        Nueva Venta
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters Section (opcional) -->
+  <div class="mb-6 bg-gray-50 rounded-lg p-4">
+    <div class="flex flex-wrap gap-4">
+      <div class="flex-1 min-w-[200px]">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Buscar por cliente..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors duration-200"
+        />
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <select
+          id="dateFilter"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors duration-200"
+        >
+          <option value="">Todas las fechas</option>
+          <option value="today">Hoy</option>
+          <option value="week">Esta semana</option>
+          <option value="month">Este mes</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
+        <tr>
+          <th class="px-6 py-3 text-left text-sm font-semibold">#ID</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold">Cliente</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold">Fecha</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold">Total</th>
+          <th class="px-6 py-3 text-left text-sm font-semibold">Estado</th>
+          <th class="px-6 py-3 text-center text-sm font-semibold">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for venta in ventas %}
+        <tr class="hover:bg-gray-50 transition-colors duration-200">
+          <td class="px-6 py-4 text-sm text-gray-900">#{{ venta.id }}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center">
+              <div
+                class="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-sm mr-3"
+              >
+                {{ venta.cliente.nombre|slice:":1" }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {{ venta.cliente.nombre }}
+                </div>
+                {% if venta.cliente.email %}
+                <div class="text-sm text-gray-500">
+                  {{ venta.cliente.email }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900">
+              {{ venta.fecha|date:"d/m/Y" }}
+            </div>
+            <div class="text-sm text-gray-500">
+              {{ venta.fecha|date:"H:i" }}
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <span class="text-sm font-semibold text-gray-900"
+              >${{ venta.total|floatformat:2 }}</span
+            >
+          </td>
+          <td class="px-6 py-4">
+            <span
+              class="px-3 py-1 text-sm rounded-full {% if venta.pagada %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}"
+            >
+              {% if venta.pagada %}
+              <i class="fas fa-check-circle mr-1"></i>Pagada {% else %}
+              <i class="fas fa-clock mr-1"></i>Pendiente {% endif %}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-center space-x-3">
+              <a
+                href="{% url 'detalle_venta' venta.id %}"
+                title="Ver detalles"
+                class="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+              >
+                <i class="fas fa-eye"></i>
+              </a>
+              <a
+                href="{% url 'editar_venta' venta.id %}"
+                title="Editar venta"
+                class="text-yellow-600 hover:text-yellow-800 transition-colors duration-200"
+              >
+                <i class="fas fa-edit"></i>
+              </a>
+              <button
+                onclick="confirmarEliminar({{ venta.id }})"
+                title="Eliminar venta"
+                class="text-red-600 hover:text-red-800 transition-colors duration-200"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-receipt text-4xl mb-2"></i>
+              No hay ventas registradas
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination (opcional) -->
+  {% if ventas.has_other_pages %}
+  <div
+    class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4"
+  >
+    <div class="flex flex-1 justify-between sm:hidden">
+      {% if ventas.has_previous %}
+      <a
+        href="?page={{ ventas.previous_page_number }}"
+        class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >Anterior</a
+      >
+      {% endif %} {% if ventas.has_next %}
+      <a
+        href="?page={{ ventas.next_page_number }}"
+        class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >Siguiente</a
+      >
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal de confirmación -->
+<div
+  id="deleteModal"
+  class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3 text-center">
+      <div
+        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"
+      >
+        <i class="fas fa-exclamation-triangle text-red-600"></i>
+      </div>
+      <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">
+        ¿Eliminar venta?
+      </h3>
+      <div class="mt-2 px-7 py-3">
+        <p class="text-sm text-gray-500">
+          Esta acción no se puede deshacer. ¿Estás seguro?
+        </p>
+      </div>
+      <div class="flex justify-center mt-4 space-x-4">
+        <button
+          id="cancelDelete"
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200"
+        >
+          Cancelar
+        </button>
+        <a
+          id="confirmDelete"
+          href="#"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+        >
+          Eliminar
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Funcionalidad de búsqueda
+  document.getElementById("searchInput").addEventListener("keyup", function () {
+    const searchText = this.value.toLowerCase();
+    const rows = document.querySelectorAll("tbody tr");
+
+    rows.forEach((row) => {
+      const clientName = row
+        .querySelector("td:nth-child(2)")
+        .textContent.toLowerCase();
+      row.style.display = clientName.includes(searchText) ? "" : "none";
+    });
+  });
+
+  // Modal de confirmación
+  function confirmarEliminar(ventaId) {
+    const modal = document.getElementById("deleteModal");
+    const confirmBtn = document.getElementById("confirmDelete");
+
+    modal.classList.remove("hidden");
+    confirmBtn.href = `{% url 'eliminar_venta' 0 %}`.replace("0", ventaId);
+
+    document.getElementById("cancelDelete").onclick = function () {
+      modal.classList.add("hidden");
+    };
+  }
+
+  // Filtro por fecha
+  document.getElementById("dateFilter").addEventListener("change", function () {
+    const filter = this.value;
+    const rows = document.querySelectorAll("tbody tr");
+    const today = new Date();
+
+    rows.forEach((row) => {
+      const dateCell = row.querySelector("td:nth-child(3)");
+      if (!dateCell) return;
+
+      const dateText = dateCell.textContent.trim();
+      const [day, month, year] = dateText.split("/");
+      const date = new Date(year, month - 1, day);
+
+      let show = true;
+
+      switch (filter) {
+        case "today":
+          show = date.toDateString() === today.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date();
+          weekAgo.setDate(today.getDate() - 7);
+          show = date >= weekAgo;
+          break;
+        case "month":
+          show =
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+          break;
+      }
+
+      row.style.display = show ? "" : "none";
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends 'Base/Home.html' %}
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i>
+                Registrar Pago
+                <span class="ml-3 px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-clock mr-1"></i>Pendiente
+                </span>
+            </h1>
+            <p class="text-gray-600 mt-1">Registrar pago para la venta #{{ venta.id }}</p>
+        </div>
+        <a href="{% url 'detalle_venta' venta.id %}" 
+           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all duration-200 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver
+        </a>
+    </div>
+
+    <!-- Resumen de la Venta -->
+    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-info-circle mr-2"></i>
+            Resumen de la Venta
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Cliente -->
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Cliente</p>
+                    <p class="text-gray-900">{{ venta.cliente.nombre }}</p>
+                    {% if venta.cliente.email %}
+                    <p class="text-sm text-gray-500">{{ venta.cliente.email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fecha -->
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Fecha de Venta</p>
+                    <p class="text-gray-900">{{ venta.fecha|date:"d/m/Y" }}</p>
+                    <p class="text-sm text-gray-500">{{ venta.fecha|date:"H:i" }} hrs</p>
+                </div>
+            </div>
+
+            <!-- Total -->
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total a Pagar</p>
+                    <p class="text-xl font-bold text-green-600">${{ venta.total|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <!-- Registrado por -->
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-white">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Registrado por</p>
+                    <p class="text-gray-900">{{ request.user.get_full_name|default:request.user.username }}</p>
+                    <p class="text-sm text-gray-500">{{ current_date|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de Pago -->
+    <form method="POST" class="space-y-6" id="pagoForm">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-credit-card mr-2"></i>
+                Información del Pago
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Monto -->
+                <div>
+                    <label for="{{ form.monto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-dollar-sign mr-2"></i>
+                        {{ form.monto.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                        {{ form.monto }}
+                        <div class="absolute right-2 top-2 text-gray-400">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                    </div>
+                    {% if form.monto.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.monto.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Ingrese el monto exacto del pago</p>
+                </div>
+
+                <!-- Método de Pago -->
+                <div>
+                    <label for="{{ form.metodo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-credit-card mr-2"></i>
+                        {{ form.metodo_pago.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.metodo_pago }}
+                    {% if form.metodo_pago.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.metodo_pago.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Seleccione el método de pago utilizado</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button type="submit" 
+                    class="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 flex items-center"
+                    id="submitBtn">
+                <i class="fas fa-save mr-2"></i>
+                Registrar Pago
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('pagoForm');
+    const montoInput = document.getElementById('{{ form.monto.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+    const totalVenta = {{ venta.total }};
+
+    // Configuración inicial
+    montoInput.style.paddingLeft = '1.5rem';
+    montoInput.style.paddingRight = '2rem';
+    
+    // Autocompletar el monto total
+    document.querySelector('.fa-calculator').addEventListener('click', function() {
+        montoInput.value = totalVenta.toFixed(2);
+    });
+
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        const monto = parseFloat(montoInput.value);
+        let isValid = true;
+        let message = '';
+        
+        if (isNaN(monto) || monto <= 0) {
+            isValid = false;
+            message = 'Por favor, ingrese un monto válido mayor a 0.';
+        } else if (monto > totalVenta) {
+            isValid = false;
+            message = 'El monto no puede ser mayor al total de la venta.';
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+            alertDiv.innerHTML = `
+                <p class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    ${message}
+                </p>
+            `;
+            form.insertBefore(alertDiv, form.firstChild);
+            
+            // Remover la alerta después de 3 segundos
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+    });
+
+    // Formateo del monto en tiempo real
+    montoInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        
+        // Remover caracteres no numéricos excepto punto
+        value = value.replace(/[^\d.]/g, '');
+        
+        // Asegurar solo un punto decimal
+        const parts = value.split('.');
+        if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+        
+        // Limitar a dos decimales
+        if (parts.length > 1) value = parts[0] + '.' + parts[1].slice(0, 2);
+        
+        e.target.value = value;
+    });
+});
+</script>
+
+<style>
+#{{ form.monto.id_for_label }} {
+    padding-left: 1.5rem;
+    padding-right: 2rem;
+}
+
+.fa-calculator {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.fa-calculator:hover {
+    color: #1f2937;
+}
+
+@media print {
+    .bg-gradient-to-r {
+        background: #1f2937 !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .bg-gray-50 {
+        background-color: #f9fafb !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    @page {
+        margin: 1cm;
+    }
+    
+    button, 
+    a {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

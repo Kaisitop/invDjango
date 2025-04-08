@@ -1,0 +1,211 @@
+{% extends 'Base/Home.html' %}
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">
+                <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} mr-2"></i>
+                {% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Proveedor
+            </h1>
+            <p class="text-gray-600 mt-1">
+                {% if form.instance.pk %}
+                Modificar información del proveedor
+                {% else %}
+                Registrar un nuevo proveedor en el sistema
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'listar_proveedores' %}" 
+           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all duration-200 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver
+        </a>
+    </div>
+
+    <form method="POST" id="proveedorForm" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-building mr-2"></i>
+                Información del Proveedor
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Nombre -->
+                <div class="col-span-2">
+                    <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-signature mr-2"></i>
+                        Nombre o Razón Social <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.nombre.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Ingrese el nombre completo del proveedor</p>
+                </div>
+
+                <!-- Contacto -->
+                <div>
+                    <label for="{{ form.contacto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-phone mr-2"></i>
+                        Contacto <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.contacto }}
+                    {% if form.contacto.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.contacto.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Número de teléfono o correo electrónico</p>
+                </div>
+
+                <!-- Dirección -->
+                <div>
+                    <label for="{{ form.direccion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        Dirección
+                    </label>
+                    {{ form.direccion }}
+                    {% if form.direccion.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.direccion.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Dirección física del proveedor</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metadata Section -->
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Información Adicional
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm text-gray-600">Última modificación</p>
+                    <p class="text-gray-900">
+                        <i class="fas fa-user mr-2"></i>
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-clock mr-2"></i>
+                        {{ current_date|date:"Y-m-d H:i:s" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button type="submit" 
+                    class="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 flex items-center">
+                <i class="fas fa-save mr-2"></i>
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Proveedor
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar clases de Tailwind a los inputs
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.classList.add(
+            'w-full',
+            'px-4',
+            'py-2',
+            'text-gray-700',
+            'bg-white',
+            'border',
+            'border-gray-300',
+            'rounded-lg',
+            'focus:border-blue-500',
+            'focus:ring-2',
+            'focus:ring-blue-200',
+            'focus:outline-none',
+            'transition-colors',
+            'duration-200'
+        );
+    });
+
+    // Validación del formulario
+    const form = document.getElementById('proveedorForm');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const nombre = document.getElementById('{{ form.nombre.id_for_label }}').value;
+        const contacto = document.getElementById('{{ form.contacto.id_for_label }}').value;
+
+        if (!nombre.trim()) {
+            isValid = false;
+            showError('El nombre del proveedor es requerido.');
+        }
+
+        if (!contacto.trim()) {
+            isValid = false;
+            showError('El contacto es requerido.');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+
+    function showError(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+        alertDiv.innerHTML = `
+            <p class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                ${message}
+            </p>
+        `;
+        form.insertBefore(alertDiv, form.firstChild);
+        
+        // Remover la alerta después de 3 segundos
+        setTimeout(() => alertDiv.remove(), 3000);
+    }
+
+    // Formatear teléfono si existe en el campo de contacto
+    const contactoInput = document.getElementById('{{ form.contacto.id_for_label }}');
+    contactoInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        
+        // Si parece ser un número de teléfono (solo dígitos)
+        if (value.replace(/\D/g, '').length >= 8) {
+            // Formato: +56 9 XXXX XXXX
+            value = value.replace(/\D/g, ''); // Remover no-dígitos
+            if (value.length > 11) value = value.substr(0, 11);
+            
+            if (value.length > 8) {
+                value = '+56 9 ' + value.substr(0, 4) + ' ' + value.substr(4);
+            }
+        }
+        
+        e.target.value = value;
+    });
+});
+</script>
+
+<style>
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
